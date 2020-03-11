@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29613.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyExcel", "EasyExcel\EasyExcel.csproj", "{D89A3734-F741-4F1E-995D-0795499EF91D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp", "ConsoleApp\ConsoleApp.csproj", "{5942C205-8A89-43AC-A6A5-310CDA15B405}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D89A3734-F741-4F1E-995D-0795499EF91D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D89A3734-F741-4F1E-995D-0795499EF91D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D89A3734-F741-4F1E-995D-0795499EF91D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D89A3734-F741-4F1E-995D-0795499EF91D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5942C205-8A89-43AC-A6A5-310CDA15B405}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5942C205-8A89-43AC-A6A5-310CDA15B405}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5942C205-8A89-43AC-A6A5-310CDA15B405}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5942C205-8A89-43AC-A6A5-310CDA15B405}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {04F2F0A6-A0F0-48BB-9036-C5D2D1C2ED62}
+	EndGlobalSection
+EndGlobal
