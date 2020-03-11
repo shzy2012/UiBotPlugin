@@ -26,11 +26,11 @@ namespace ConsoleApp
 
             var sheet2 = excel.CreateSheet(workbook, "sheet2");
 
-            json = @"[['a1','b1','c1'],['a2','b2','c2']]";
+            json = @"[['Small','Medium','Large'],['Small','Medium','Large']]";
             data = JArray.Parse(json);
             ok = excel.WriteRange(sheet2, 0, 0, data);
 
-            ok = excel.Save(workbook);
+            ok = excel.Save(workbook,"");
             Console.WriteLine("保存结果:{0}", ok);
 
             Console.ReadLine();

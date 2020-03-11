@@ -2,8 +2,9 @@
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System;
-using System.Diagnostics;
 using System.IO;
+
+
 /// <summary>
 /// 建议把下面的namespace名字改为您的插件名字
 /// </summary>
@@ -54,13 +55,6 @@ namespace EasyExcel
         /// <param name="path">路径</param>
         /// <returns></returns>
         bool Save(IWorkbook workbook, string path);
-
-        /// <summary>
-        /// 保存 workbook
-        /// </summary>
-        /// <param name="workbook"></param>
-        /// <returns></returns>
-        bool Save(IWorkbook workbook);
     }
 
     /// <summary>
@@ -111,6 +105,17 @@ namespace EasyExcel
                 if (string.IsNullOrWhiteSpace(sheetName))
                 {
                     sheetName = "sheet1";
+                }
+
+                //防止sheet名字重复
+                for (int i = 0; i < workbook.NumberOfSheets; i++)
+                {
+                    var name = workbook.GetSheetName(i);
+                    if (sheetName == name)
+                    {
+                        sheetName = string.Format("{0}-r{1}", sheetName, new Random().Next(10, 99)); //添加随机数
+                        break;
+                    }
                 }
 
                 return workbook.CreateSheet(sheetName);
@@ -213,33 +218,9 @@ namespace EasyExcel
             {
                 if (string.IsNullOrEmpty(path))
                 {
-                    path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "auto-save" + DateTime.Now.ToString("yyyyMMdd") + ".xlsx");
+                    path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "auto-save" + DateTime.Now.ToString("yyyyMMdd") + "-r" + new Random().Next(10, 99).ToString() + ".xlsx");
                 }
 
-                using (var fs = File.Create(path))
-                {
-                    workbook.Write(fs);
-                }
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                log.Error("Save", ex);
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// 保存 workbook,默认保存在桌面
-        /// </summary>
-        /// <param name="workbook"></param>
-        /// <returns></returns>
-        public bool Save(IWorkbook workbook)
-        {
-            try
-            {
-                string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "auto-save" + DateTime.Now.ToString("yyyyMMdd") + ".xlsx");
                 using (var fs = File.Create(path))
                 {
                     workbook.Write(fs);
