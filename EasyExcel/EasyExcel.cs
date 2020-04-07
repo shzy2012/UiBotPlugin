@@ -55,6 +55,8 @@ namespace EasyExcel
         /// <param name="path">路径</param>
         /// <returns></returns>
         bool Save(IWorkbook workbook, string path);
+
+        IWorkbook OpenExcel(string filePath);
     }
 
     /// <summary>
@@ -113,7 +115,7 @@ namespace EasyExcel
                     var name = workbook.GetSheetName(i);
                     if (sheetName == name)
                     {
-                        sheetName = string.Format("{0}-r{1}", sheetName, new Random().Next(10, 99)); //添加随机数
+                        sheetName = string.Format("{0}-r{1}", sheetName, new Random().Next(10, 99)) + DateTime.Now.Ticks; //添加随机数
                         break;
                     }
                 }
@@ -221,6 +223,14 @@ namespace EasyExcel
                     path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "auto-save" + DateTime.Now.ToString("yyyyMMdd") + "-r" + new Random().Next(10, 99).ToString() + ".xlsx");
                 }
 
+                //创建目录
+                string dir = Path.GetDirectoryName(path);
+                if (!Directory.Exists(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                }
+
+                //创建文件
                 using (var fs = File.Create(path))
                 {
                     workbook.Write(fs);
@@ -234,5 +244,45 @@ namespace EasyExcel
                 return false;
             }
         }
+
+
+        #region 读取数据
+
+        //打开Excel
+
+        public IWorkbook OpenExcel(string filePath)
+        {
+            try
+            {
+                return WorkbookFactory.Create(filePath);
+            }
+            catch (Exception ex)
+            {
+                log.Error("OpenExcel", ex);
+                return null;
+            }
+        }
+
+        //读取单元格
+        //读取区域
+        //读取行
+        //读取列
+        //获取行数
+        //获取列数
+        //合并单元格
+        //拆分单元格
+        //写入单元格
+        //写入行
+        //删除行
+        //插入行
+        //插入列
+        //插入图片
+        //删除图片
+        //写入区域
+        //选中区域
+        //清除区域
+        //删除区域
+
+        #endregion
     }
 }

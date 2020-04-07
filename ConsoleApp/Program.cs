@@ -15,6 +15,9 @@ namespace ConsoleApp
             IExcelPlugin excel = new ExcelPlugin();
             var workbook = excel.CreateExcel();
             var sheet = excel.CreateSheet(workbook, "sheet1");
+            sheet = excel.CreateSheet(workbook, "sheet1");
+            sheet = excel.CreateSheet(workbook, "sheet1");
+            sheet = excel.CreateSheet(workbook, "sheet1");
 
             //测试1
 
@@ -30,7 +33,7 @@ namespace ConsoleApp
             data = JArray.Parse(json);
             ok = excel.WriteRange(sheet2, 0, 0, data);
 
-            ok = excel.Save(workbook,"");
+            ok = excel.Save(workbook, @"C:\Users\Joey\Desktop\百度疫情迁徙数据\山东.xlsx");
             Console.WriteLine("保存结果:{0}", ok);
 
             Console.ReadLine();
