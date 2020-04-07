@@ -1,5 +1,8 @@
 ﻿using Newtonsoft.Json.Linq;
+using NPOI.HSSF.Record.CF;
 using NPOI.SS.UserModel;
+using NPOI.SS.Util;
+using NPOI.Util;
 using NPOI.XSSF.UserModel;
 using System;
 using System.IO;
@@ -29,6 +32,16 @@ namespace EasyExcel
         ISheet CreateSheet(IWorkbook workbook, string sheetName);
 
         /// <summary>
+        /// 获取sheet
+        /// </summary>
+        /// <param name="workbook">workbook</param>
+        /// <param name="sheet">sheet名称或者索引</param>
+        /// <returns>sheet</returns>
+        ISheet GetSheet(IWorkbook workbook, dynamic sheet);
+
+        IWorkbook DeleteSheet(IWorkbook workbook, dynamic sheet);
+
+        /// <summary>
         /// 写入行数据
         /// </summary>
         /// <param name="sheet"></param>
@@ -56,7 +69,21 @@ namespace EasyExcel
         /// <returns></returns>
         bool Save(IWorkbook workbook, string path);
 
+        bool Close(IWorkbook workbook, bool isSave);
+
         IWorkbook OpenExcel(string filePath);
+
+        object ReadCell(ISheet sheet, int rowNum, int cellNum);
+
+        bool WriteCell(ISheet sheet, int rowNum, int cellNum, dynamic value);
+
+        JArray ReadRow(ISheet sheet, int rowNum);
+
+        JArray ReadRange(ISheet sheet, string range);
+
+        int GetRowsCount(ISheet sheet);
+
+        int GetColumsCount(ISheet sheet);
     }
 
     /// <summary>
@@ -65,6 +92,8 @@ namespace EasyExcel
     public class ExcelPlugin : IExcelPlugin
     {
         private Easylog.Log log = null;
+
+        private static string ExcelFilePath = string.Empty;
 
         public ExcelPlugin()
         {
@@ -127,6 +156,46 @@ namespace EasyExcel
                 log.Error("CreateSheet", ex);
                 return null;
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="workbook"></param>
+        /// <param name="sheetName"></param>
+        /// <returns></returns>
+        public IWorkbook DeleteSheet(IWorkbook workbook, dynamic sheet)
+        {
+            try
+            {
+                if (workbook == null)
+                {
+                    log.Info("[DeleteSheet]=>workbook不能为空");
+                }
+
+                if (sheet is int)
+                {
+                    workbook.RemoveSheetAt(sheet);
+                }
+                else
+                {
+                    for (int i = 0; i < workbook.NumberOfSheets; i++)
+                    {
+                        var name = workbook.GetSheetName(i);
+                        if (sheet.ToString() == name)
+                        {
+                            workbook.RemoveSheetAt(i);
+                            break;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error("DeleteSheet", ex);
+            }
+
+            return workbook;
         }
 
         /// <summary>
@@ -245,16 +314,51 @@ namespace EasyExcel
             }
         }
 
+        public bool Close(IWorkbook workbook, bool isSave)
+        {
+            try
+            {
+                if (isSave)
+                {
+                    using (var fs = File.Create(ExcelFilePath))
+                    {
+                        workbook.Write(fs);
+                    }
+                }
+
+                workbook.Close();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                log.Error("Save", ex);
+                return false;
+            }
+        }
 
         #region 读取数据
 
-        //打开Excel
 
+        /// <summary>
+        /// 打开Excel
+        /// </summary>
+        /// <param name="filePath">excel文件地址</param>
+        /// <returns></returns>
         public IWorkbook OpenExcel(string filePath)
         {
             try
             {
-                return WorkbookFactory.Create(filePath);
+                if (Path.GetExtension(filePath) == ".xls")
+                {
+                    ExcelFilePath = filePath;
+                    return WorkbookFactory.Create(filePath);
+                }
+
+                using (FileStream file = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                {
+                    ExcelFilePath = filePath;
+                    return new XSSFWorkbook(file);
+                }
             }
             catch (Exception ex)
             {
@@ -263,15 +367,197 @@ namespace EasyExcel
             }
         }
 
+        /// <summary>
+        /// 获取sheet
+        /// </summary>
+        /// <param name="workbook">workbook</param>
+        /// <param name="sheet">sheet名称或者索引</param>
+        /// <returns>sheet</returns>
+        public ISheet GetSheet(IWorkbook workbook, dynamic sheet)
+        {
+            try
+            {
+                if (sheet is int)
+                {
+                    return workbook.GetSheetAt(sheet);
+                }
+                else
+                {
+                    return workbook.GetSheet(sheet);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                log.Error("GetSheet", ex);
+                return null;
+            }
+        }
+
         //读取单元格
-        //读取区域
-        //读取行
-        //读取列
-        //获取行数
-        //获取列数
-        //合并单元格
-        //拆分单元格
+        public object ReadCell(ISheet sheet, int rowNum, int cellNum)
+        {
+            try
+            {
+                return sheet.GetRow(rowNum).GetCell(cellNum);
+            }
+            catch (Exception ex)
+            {
+                log.Error("ReadCell", ex);
+                return string.Empty;
+            }
+        }
+
         //写入单元格
+        public bool WriteCell(ISheet sheet, int rowNum, int cellNum, dynamic value)
+        {
+            try
+            {
+                if (sheet.GetRow(rowNum) == null || sheet.GetRow(rowNum).GetCell(cellNum) == null)
+                {
+                    sheet.CreateRow(rowNum).CreateCell(cellNum).SetCellValue(value);
+                }
+                else
+                {
+                    sheet.GetRow(rowNum).GetCell(cellNum).SetCellValue(value);
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                log.Error("SetCell", ex);
+                return false;
+            }
+        }
+
+        //创建单元格
+        public bool CreateCell(ISheet sheet, int rowNum, int cellNum, dynamic value)
+        {
+            try
+            {
+                sheet.CreateRow(rowNum).CreateCell(cellNum).SetCellValue(value);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                log.Error("SetCell", ex);
+                return false;
+            }
+        }
+
+        public ICell[,] GetRange(ISheet sheet, string range)
+        {
+            string[] cellStartStop = range.Split(':');
+
+            CellReference cellRefStart = new CellReference(cellStartStop[0]);
+            CellReference cellRefStop = new CellReference(cellStartStop[1]);
+
+            ICell[,] cells = new ICell[cellRefStop.Row - cellRefStart.Row + 1, cellRefStop.Col - cellRefStart.Col + 1];
+
+            for (int i = cellRefStart.Row; i < cellRefStop.Row + 1; i++)
+            {
+                IRow row = sheet.GetRow(i);
+                if (row == null)
+                {
+                    row = sheet.CreateRow(i);
+                }
+
+                for (int j = cellRefStart.Col; j < cellRefStop.Col + 1; j++)
+                {
+                    cells[i - cellRefStart.Row, j - cellRefStart.Col] = row.GetCell(j);
+                }
+            }
+
+            return cells;
+        }
+
+        //读取区域
+        public JArray ReadRange(ISheet sheet, string range)
+        {
+            JArray array = new JArray();
+            try
+            {
+                var cells = GetRange(sheet, range);
+                foreach (var item in cells)
+                {
+                    if (item != null)
+                    {
+                        array.Add(item.ToString());
+                    }
+                    else
+                    {
+                        array.Add("");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error("ReadRange", ex);
+            }
+
+            return array;
+        }
+
+        //读取行
+        public JArray ReadRow(ISheet sheet, int rowNum)
+        {
+            JArray array = new JArray();
+            try
+            {
+                foreach (var item in sheet.GetRow(rowNum).Cells)
+                {
+                    array.Add(item.ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error("ReadRow", ex);
+            }
+
+            return array;
+        }
+
+        //读取列
+
+        //获取行数
+        public int GetRowsCount(ISheet sheet)
+        {
+            try
+            {
+                return sheet.LastRowNum;
+            }
+            catch (Exception ex)
+            {
+                log.Error("GetRowsCount", ex);
+            }
+
+            return 0;
+        }
+
+        //获取列数
+        public int GetColumsCount(ISheet sheet)
+        {
+            try
+            {
+                return sheet.GetRow(0).LastCellNum;
+            }
+            catch (Exception ex)
+            {
+                log.Error("GetColumsCount", ex);
+            }
+
+            return 0;
+        }
+
+        //合并单元格
+        public bool MergeRange(ISheet sheet)
+        {
+            return true;
+        }
+
+        //拆分单元格
+
         //写入行
         //删除行
         //插入行
